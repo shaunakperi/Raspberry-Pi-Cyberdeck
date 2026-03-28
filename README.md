@@ -6,7 +6,7 @@ A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of se
 
 ## 💻 Cyberdeck
 
-| <img src="screenshots/cyberdeck.png"> |
+| <img src="screenshots/cyberdeck.jpg"> |
 |---|
 
 ---
