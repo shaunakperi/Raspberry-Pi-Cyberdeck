@@ -18,7 +18,8 @@ A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of se
 | Screenshot Name | Sreenshot |
 |---|---|
 | Kiwix main library page | <img src="sreenshots/kiwix-home.png"> |
-| Wikipedia article in Kiwix | <img src="sreenshots/kiwix-wikipedia.png"> |
+| Wikipedia in Kiwix | <img src="sreenshots/kiwix-wikipedia.png"> |
+| Medical Wikipedia in Kiwix | <img src="sreenshots/tileserver-home.png"> |
 | iFixit repair guides in Kiwix | <img src="sreenshots/kiwix-ifixit.png"> |
 | TileServer GL map page | <img src="sreenshots/tileserver-home.png"> |
 | Navidrome music player | <img src="sreenshots/navidrome-home.png"> |
