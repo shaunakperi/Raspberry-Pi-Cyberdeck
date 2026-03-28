@@ -1,28 +1,26 @@
 # 🖥️ Raspberry Pi 5 Cyberdeck | Offline Computer
 
-A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of serving Wikipedia, offline maps, repair guides, medical references, and music, all without an internet connection.
-
+A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of serving Wikipedia, offline maps, repair guides, medical references, and music — all without an internet connection.
 
 ---
 
 ## 💻 Cyberdeck
 
-| <img src="sreenshots/tileserver-home.png">|
+| <img src="screenshots/cyberdeck.png"> |
 |---|
-
 
 ---
 
 ## 📸 Screenshots
 
-| Screenshot Name | Sreenshot |
+| Screenshot Name | Screenshot |
 |---|---|
-| Kiwix main library page | <img src="sreenshots/kiwix-home.png"> |
-| Wikipedia in Kiwix | <img src="sreenshots/kiwix-wikipedia.png"> |
-| Medical Wikipedia in Kiwix | <img src="sreenshots/tileserver-home.png"> |
-| iFixit repair guides in Kiwix | <img src="sreenshots/kiwix-ifixit.png"> |
-| TileServer GL map page | <img src="sreenshots/tileserver-home.png"> |
-| Navidrome music player | <img src="sreenshots/navidrome-home.png"> |
+| Kiwix main library page | <img src="screenshots/kiwix-home.png"> |
+| Wikipedia in Kiwix | <img src="screenshots/kiwix-wikipedia.png"> |
+| Medical Wikipedia in Kiwix | <img src="screenshots/kiwix-medical.png"> |
+| iFixit repair guides in Kiwix | <img src="screenshots/kiwix-ifixit.png"> |
+| TileServer GL map page | <img src="screenshots/tileserver-home.png"> |
+| Navidrome music player | <img src="screenshots/navidrome-home.png"> |
 
 ---
 
@@ -33,7 +31,7 @@ A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of se
 | **Raspberry Pi 5** | The main computing unit. ARM64 processor, 8GB RAM, runs Raspberry Pi OS (Debian-based). Powers all the services. |
 | **5 inch LCD Display** | Small portable display connected directly to the Pi. Used for local access to all services via browser. |
 | **Power Bank** | Portable battery pack powering the Pi and display. Makes the cyberdeck fully portable and off-grid capable. |
-| **Bluetooth Mini Keyboard** | Compact wireless keyboard for input. Allows full control of the Pi without needing a full-size keyboard. |
+| **Bluetooth Mini Keyboard (iPazzPort)** | Compact wireless keyboard with built-in touchpad. Allows full control of the Pi without needing a full-size keyboard or mouse. |
 
 ---
 
@@ -42,7 +40,7 @@ A fully offline, portable cyberdeck built around a Raspberry Pi 5, capable of se
 | Software | Port | Description |
 |---|---|---|
 | **Kiwix** | 8080 | Offline content server. Serves Wikipedia, iFixit repair guides, medical references, and Linux command references as `.zim` files. Fully browsable without internet. |
-| **TileServer GL** | 8081 | Offline map tile server. Serves interactive OpenStreetMap-based maps of North Carolina, New York, and California. Built using tilemaker to convert raw OSM data to MBTiles format. |
+| **TileServer GL** | 8081 | Offline map tile server. Serves interactive OpenStreetMap-based maps of the entire USA. Built using tilemaker to convert raw OSM data to MBTiles format. |
 | **Navidrome** | 4533 | Self-hosted music server. Works like a personal offline Spotify. Scans your local music library and streams it via browser or any Subsonic-compatible app. |
 | **Docker** | N/A | Container runtime used to run Kiwix, TileServer GL, and Navidrome as isolated services that auto-start on boot. |
 | **tilemaker** | N/A | ARM64-native tool used to convert raw OpenStreetMap `.osm.pbf` data files into `.mbtiles` format for use with TileServer GL. |
@@ -111,10 +109,15 @@ sudo docker restart kiwix
 ```
 
 Recommended content packs:
-- Wikipedia English (nopic or maxi)
+- Wikipedia English nopic (no images, ~50GB) — recommended for storage
 - iFixit Repair Guides
 - Wikipedia Medicine
 - tldr Linux Pages
+
+> ⚠️ Use `wget -c` to resume interrupted downloads. Example:
+```bash
+wget -c -P ~/Documents/kiwix/data https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2025-12.zim
+```
 
 ---
 
@@ -125,40 +128,31 @@ sudo apt-get install -y tilemaker
 
 ---
 
-### Step 5 — Download & Convert Map Data
+### Step 5 — Download & Convert Full USA Map Data
+
+> ⚠️ Requires ~150GB free space and 3-4 hours of uninterrupted processing. Do NOT unplug power during conversion.
+
 ```bash
-# Download North Carolina, New York, California map data 
-wget -P ~/Documents/maps https://download.geofabrik.de/north-america/us/north-carolina-latest.osm.pbf
-
-wget -P ~/Documents/maps https://download.geofabrik.de/north-america/us/new-york-latest.osm.pbf
-
-wget -P ~/Documents/maps https://download.geofabrik.de/north-america/us/california-latest.osm.pbf
+# Download full USA map data (~11GB)
+wget -c -P ~/Documents/maps https://download.geofabrik.de/north-america/us-latest.osm.pbf
 
 # Download tilemaker config files
-wget https://raw.githubusercontent.com/systemed/tilemaker/v3.0.0/resources/config-example.json \
+wget https://raw.githubusercontent.com/systemed/tilemaker/v3.0.0/resources/config-openmaptiles.json \
   -O ~/Documents/maps/config.json
-wget https://raw.githubusercontent.com/systemed/tilemaker/v3.0.0/resources/process-example.lua \
+wget https://raw.githubusercontent.com/systemed/tilemaker/v3.0.0/resources/process-openmaptiles.lua \
   -O ~/Documents/maps/process.lua
 
-# Convert to mbtiles (takes 30-60 mins)
-tilemaker --input ~/Documents/maps/north-carolina-latest.osm.pbf \
-  --output ~/Documents/maps/north-carolina.mbtiles \
+# Convert to mbtiles (uses --store flag to prevent memory crashes)
+tilemaker --input ~/Documents/maps/us-latest.osm.pbf \
+  --output ~/Documents/maps/us-complete.mbtiles \
   --config ~/Documents/maps/config.json \
-  --process ~/Documents/maps/process.lua
+  --process ~/Documents/maps/process.lua \
+  --store ~/Documents/maps/tilemaker-store
 
-tilemaker --input ~/Documents/maps/new-york-latest.osm.pbf \
-  --output ~/Documents/maps/new-york.mbtiles \
-  --config ~/Documents/maps/config.json \
-  --process ~/Documents/maps/process.lua
-
-tilemaker --input ~/Documents/maps/california-latest.osm.pbf \
-  --output ~/Documents/maps/california.mbtiles \
-  --config ~/Documents/maps/config.json \
-  --process ~/Documents/maps/process.lua
-
-# Clean up config files so tileserver auto-detects mbtiles
+# Clean up after conversion
 rm ~/Documents/maps/config.json
 rm ~/Documents/maps/process.lua
+rm -rf ~/Documents/maps/tilemaker-store
 ```
 
 ---
@@ -193,6 +187,22 @@ Access at: `http://localhost:4533`
 Create an admin account on first login. Navidrome will automatically scan `~/Music` for audio files.
 
 
+### Step 8 — Transfer Music from PC to Pi (over WiFi)
+
+Get your Pi's IP address:
+```bash
+hostname -I
+```
+
+Then on your Windows PC in Command Prompt:
+```bash
+scp -r "C:\Users\YOURUSERNAME\Music\Spotify Music\*" speri@PI_IP_ADDRESS:~/Music/
+```
+
+
+
+---
+
 ## 🔄 Starting All Services After Reboot
 
 All Docker containers are configured with `--restart unless-stopped` so they auto-start on boot. To manually start them:
@@ -217,17 +227,18 @@ sudo docker start navidrome
 
 ## ⚠️ Known Limitations
 
-- **ARM64 compatibility**: Some Docker images are built for x86/amd64 only and will not run on the Pi 5's ARM64 architecture. Always look for ARM64-compatible images.
-- **Map import**: Processing large OSM datasets (full USA) requires significant RAM and uninterrupted power. 
-- **Wikipedia download**: The full Wikipedia maxi file is ~100GB. The nopic version (~25GB) is recommended for storage-constrained builds.
+- **ARM64 compatibility**: Some Docker images (like Project N.O.M.A.D) are built for x86/amd64 only and will not run on the Pi 5's ARM64 architecture. Always look for ARM64-compatible images.
+- **Map conversion**: tilemaker can crash mid-conversion due to memory limits. Use the `--store` flag to write temporary data to disk instead of RAM. Use `config-openmaptiles` config for proper styled maps — `config-example` produces blank tiles.
+- **Wikipedia download**: The full Wikipedia maxi file is ~100GB. The nopic version (~50GB) is recommended. Use `wget -c` to resume interrupted downloads.
+- **Power interruptions**: Unplugging during map conversion or database imports will corrupt data and require starting over. Always use a stable power source during long operations.
 
 ---
 
 ## 📝 Notes
 
-- This project was inspired by [Project N.O.M.A.D](https://github.com/Crosstalk-Solutions/project-nomad) but adapted for ARM64/Raspberry Pi 5 compatibility.
+- This project was inspired by [Project N.O.M.A.D](https://github.com/Crosstalk-Solutions/project-nomad) but adapted for ARM64/Raspberry Pi 5 compatibility since N.O.M.A.D's Docker images are amd64 only.
 - All services run completely offline once set up.
-- The cyberdeck is powered by a portable power bank, making it fully portable.
+- The cyberdeck is powered by a portable power bank making it fully portable.
 
 ---
 
